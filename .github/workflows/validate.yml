@@ -1,0 +1,25 @@
+name: Validate Linux Nodalix
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify all kernel pins without networking
+        run: |
+          python3 -m unittest discover -s tests -v
+          python3 scripts/check-policy.py --release 0.5.0
+      - name: Check shell packaging scripts
+        run: |
+          bash -n PKGBUILD scripts/build.sh scripts/ci-build.sh scripts/stage-signed-repo.sh
+          git diff --check
