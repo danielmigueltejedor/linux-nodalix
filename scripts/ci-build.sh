@@ -23,15 +23,17 @@ sha256sum --check SHA256SUMS
 kernel="$(find . -maxdepth 1 -type f -name 'linux-nodalix-[0-9]*.pkg.tar.zst' -print -quit)"
 headers="$(find . -maxdepth 1 -type f -name 'linux-nodalix-headers-[0-9]*.pkg.tar.zst' -print -quit)"
 [[ -n "$kernel" && -n "$headers" ]] || exit 1
-bsdtar -tf "$kernel" | grep -Eq '^usr/lib/modules/[^/]+/vmlinuz$'
-bsdtar -tf "$headers" | grep -Eq '^usr/lib/modules/[^/]+/build/Module.symvers$'
-bsdtar -tf "$headers" | grep -Eq '^usr/lib/modules/[^/]+/build/include/generated/autoconf.h$'
+kernel_list="$(bsdtar -tf "$kernel")"
+headers_list="$(bsdtar -tf "$headers")"
+grep -Eq '^usr/lib/modules/[^/]+/vmlinuz$' <<< "$kernel_list"
+grep -Eq '^usr/lib/modules/[^/]+/build/Module.symvers$' <<< "$headers_list"
+grep -Eq '^usr/lib/modules/[^/]+/build/include/generated/autoconf.h$' <<< "$headers_list"
 
 config="$(bsdtar -xOf "$kernel" usr/share/doc/linux-nodalix/config)"
 grep -Fxq CONFIG_X86_64_VERSION=1 <<< "$config"
 grep -Fxq CONFIG_LOCK_DOWN_KERNEL_FORCE_INTEGRITY=y <<< "$config"
 grep -Fxq CONFIG_MODULE_SIG_ALL=y <<< "$config"
 
-builtin="$(bsdtar -tf "$kernel" | grep -E '^usr/lib/modules/[^/]+/modules.builtin$')"
+builtin="$(grep -E '^usr/lib/modules/[^/]+/modules.builtin$' <<< "$kernel_list")"
 bsdtar -xOf "$kernel" "$builtin" | grep -Fxq kernel/drivers/hid/xpadneo/hid-xpadneo.ko
 echo 'Kernel package and DKMS headers validated.'
