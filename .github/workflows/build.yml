@@ -1,0 +1,54 @@
+name: Build pinned Linux Nodalix (manual)
+
+# No cron, no CachyOS release trigger and no automatic publication.
+# Nodalix OS selects an explicit version and is responsible for promoting it.
+on:
+  workflow_dispatch:
+    inputs:
+      nodalix_os_release:
+        description: "Pinned Nodalix OS version (pins/<version>.json)"
+        required: true
+        type: string
+        default: "0.5.0"
+
+permissions:
+  contents: read
+
+jobs:
+  kernel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate the exact selected kernel and its sources
+        env:
+          NODALIX_OS_RELEASE: ${{ inputs.nodalix_os_release }}
+        run: |
+          python3 -m unittest discover -s tests -v
+          python3 scripts/check-policy.py --release "$NODALIX_OS_RELEASE"
+          bash -n PKGBUILD scripts/build.sh scripts/ci-build.sh
+      - name: Reclaim CI disk space
+        run: |
+          sudo rm -rf -- /usr/local/lib/android /usr/share/dotnet /opt/ghc
+          df -h /
+      - name: Build in disposable Arch Linux container
+        env:
+          NODALIX_OS_RELEASE: ${{ inputs.nodalix_os_release }}
+        run: |
+          docker run --rm \
+            -e NODALIX_CI_CONTAINER=1 \
+            -v "$PWD":/src -w /src \
+            archlinux:latest bash scripts/ci-build.sh "$NODALIX_OS_RELEASE"
+      - name: Verify artifact checksums again on the runner
+        run: |
+          cd dist/packages
+          sha256sum --check SHA256SUMS
+      - name: Upload unsigned candidate binaries for signing/review
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-nodalix-candidate
+          path: dist/packages/*
+          if-no-files-found: error
+          retention-days: 14
