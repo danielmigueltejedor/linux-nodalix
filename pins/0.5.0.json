@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "nodalix_os_version": "0.5.0",
+  "kernel": {
+    "package": "linux-nodalix",
+    "headers_package": "linux-nodalix-headers",
+    "pkgver": "7.3.1",
+    "pkgrel": 1,
+    "kernel_release": "7.3.1-1-nodalix",
+    "source": {
+      "cachyos_linux_commit": "36ae4c219cfbd02576048c7ca1d366cea5db8034",
+      "cachyos_config_commit": "66666177b78f29c32670ba4f78f882bc0b9cc03d",
+      "xpadneo_commit": "e8f103a77f777c2c54536dd947969cf228699c13"
+    },
+    "sha256": {
+      "cachyos_source": "ee5f3f2dd4a04bfae77c10a603857c1d99a3af20270b424ae018b98426f8d9f6",
+      "cachyos_config": "81fb56fe326612a0dc4705fc5ec309d04bcfffb487db0cb5843918fe92951927",
+      "preserve_ble_identity_patch": "67383a24e884464b285cf936abafae2151eb94a2cab5f550d1707e168980668f"
+    }
+  },
+  "policy": {
+    "upstream_auto_upgrade": false,
+    "permitted_kernel_update": "new Nodalix OS release or explicitly reviewed security rebuild of this pin",
+    "build_target": "x86_64-v1",
+    "package_signature_required_before_distribution": true
+  }
+}
