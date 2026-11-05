@@ -20,6 +20,8 @@ jobs:
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Validate the exact selected kernel and its sources
         env:
           NODALIX_OS_RELEASE: ${{ inputs.nodalix_os_release }}
